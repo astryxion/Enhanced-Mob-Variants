@@ -1,25 +1,39 @@
+# 1.12.2ForgeTemplate
 
-Installation information
-=======
+A fixed and ready to use template for minecraft forge modding on `1.12.2`
+with `shadow` plugin integrated including two useful `artifacts`. Tested flawlessly on `IntelliJ IDEA Ultimate 2022.2`
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+```js
+       java   8
+     gradle   3.1
+     shadow   2.0.4
+  minecraft   1.12.2
+forgegradle   2.3-SNAPSHOT
+```
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+## Setup
+1. Clone this repository.
+2. Import `build.gradle` as a project.
+3. Let it configure.
+4. Run `setupDecompWorkspace` in Gradle: `Tasks > forgegradle > setupDecompWorkspace`
+5. Reload gradle project.
+> *Check out [#build](#build), [#run](#run) and [#artifacts](#artifacts) for more information.*
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+## Build
+> *Note: If the build ever finishes with an error looking like `duplicate entry`, then run `clean` in Gradle: `Tasks > build > clean`*
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+&emsp;Run `build` in Gradle: `Tasks > build > build`
+> Output .jar will be located in `build/libs/`
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+## Run
+&emsp;Run `genIntellijRuns` in Gradle: `Tasks > forgegradle > genIntellijRuns`
+> This will create the run configurations. <br> *Note: you will need to change the classpath module to `.main`*
+
+> You should add `CopyResources` from [#artifacts](#artifacts) as a `Task before launch` and drag it in front of build.
+
+## Artifacts
+> *Note: If the artifacts are not detected on setup, you might need to restart your IntelliJ.*
+
+&emsp;I have included two useful artifacts that I always use when developing mods:
+- `CopyMod` copies the mod from your [#build](#build) folder into your `%appdata%/.minecraft/mods`
+- `CopyResources` copies the resources folder to your `build/classes/main` so they are accessible in the development environment
