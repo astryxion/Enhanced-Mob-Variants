@@ -4,8 +4,8 @@ license="MIT"
 
 [[mods]]
     modId="moremobvariants"
-    version="1.0.0"
-    displayName="Astryxion's Mob Variants"
+    version="1.21.11-1.0.0"
+    displayName="Enhanced Mob Variants"
     authors="Astryxion"
     description="Adds unique visual variants to vanilla mobs to improve world diversity."
 
@@ -19,6 +19,6 @@ license="MIT"
 [[dependencies.moremobvariants]]
     modId="minecraft"
     type="required"
-    versionRange="1.21.1" # <--- Simply use the version number alone
+    versionRange="[1.21.11,)"
     ordering="NONE"
     side="BOTH"
