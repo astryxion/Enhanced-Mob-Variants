@@ -26,7 +26,7 @@ public class MoreMobVariants {
 
         // 4. Register the NeoForge Event Bus (for the EventHandler)
         NeoForge.EVENT_BUS.register(EventHandler.class);
-        
+
         LOGGER.info("More Mob Variants initialized with Mod ID: {}", MODID);
     }
 
