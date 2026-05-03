@@ -20,16 +20,15 @@ plugins {
 
 apply plugin: 'forge'
 
-// ==============================
-// Java compatibility FIX
-// Forge 1.7.10 supports Java 6–8
-// Modern JDKs REQUIRE at least 7
-// ==============================
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
 version = project.version
 group = project.group
+
+jar {
+    archiveBaseName = mod_id
+}
 
 minecraft {
     version = project.minecraft_version + "-" + project.forge_version
@@ -61,11 +60,13 @@ tasks.withType(JavaCompile) {
 // ==============================
 
 task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveBaseName = mod_id
     classifier = "sources"
     from sourceSets.main.allSource
 }
 
 task devJar(type: Jar) {
+    archiveBaseName = mod_id
     classifier = "dev"
     from sourceSets.main.output
 }
@@ -82,6 +83,9 @@ artifacts {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId mod_id
+            version project.version
             artifact(jar) {
                 builtBy build
             }

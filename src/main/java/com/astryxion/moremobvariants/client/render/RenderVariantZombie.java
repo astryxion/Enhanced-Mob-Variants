@@ -2,20 +2,14 @@ package com.astryxion.moremobvariants.client.render;
 
 import net.minecraft.client.renderer.entity.RenderZombie;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.monster.EntityPigZombie;
+import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.util.ResourceLocation;
 
 public class RenderVariantZombie extends RenderZombie {
 
-    private static final String[] SKINS = {
-        "alex",
-        "ari",
-        "efe",
-        "kai",
-        "makena",
-        "noor",
-        "sunny",
-        "zuri"
-    };
+    /** Custom skins are zombie_1.png … zombie_8.png; entity id % 9 == 0 uses vanilla. */
+    private static final int CUSTOM_ZOMBIE_COUNT = 8;
 
     // RenderZombie is NO-ARG in 1.7.10
     public RenderVariantZombie() {
@@ -24,21 +18,25 @@ public class RenderVariantZombie extends RenderZombie {
 
     @Override
     protected ResourceLocation getEntityTexture(Entity entity) {
+        // Pigmen subclass EntityZombie; client render lookup can pick this renderer for them.
+        if (entity instanceof EntityPigZombie) {
+            return super.getEntityTexture(entity);
+        }
 
-        // 0–8 (9 total including vanilla)
-        int variant = Math.abs(entity.getEntityId()) % (SKINS.length + 1);
+        // Zombie villagers share EntityZombie + this renderer; vanilla uses different textures/UVs.
+        if (entity instanceof EntityZombie && ((EntityZombie) entity).isVillager()) {
+            return super.getEntityTexture(entity);
+        }
 
-        // 0 = vanilla zombie
+        int variant = Math.abs(entity.getEntityId()) % (CUSTOM_ZOMBIE_COUNT + 1);
+
         if (variant == 0) {
             return super.getEntityTexture(entity);
         }
 
-        // 1–8 = custom zombie skins
-        String skin = SKINS[variant - 1];
-
         return new ResourceLocation(
             "moremobvariants",
-            "textures/entity/zombie/" + skin + ".png"
+            "textures/entity/zombie/zombie_" + variant + ".png"
         );
     }
 }

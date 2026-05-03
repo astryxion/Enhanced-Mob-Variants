@@ -1,0 +1,16 @@
+[
+{
+    "modid": "moremobvariants",
+    "name": "Enhanced Mob Variants",
+    "description": "Adds unique visual variants to vanilla mobs to improve world diversity.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": ["Astryxion"],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+}
+]
