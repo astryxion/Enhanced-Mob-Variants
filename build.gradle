@@ -15,17 +15,17 @@ plugins {
 
 apply plugin: "net.minecraftforge.gradle.forge"
 
-version = "1.0"
-group = "dreamys.studio" //http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "examplemod" //name of the output jar
+version = mod_version
+group = mod_group
+archivesBaseName = mod_archives_base_name
 
-sourceCompatibility = targetCompatibility = 1.8 //using java 8
+sourceCompatibility = targetCompatibility = JavaVersion.toVersion(java_source_target)
 compileJava.options.encoding = "UTF-8"
 
 minecraft {
-    version = "1.12.2-14.23.5.2847"
-    runDir = "run"
-    mappings = "stable_39" //mappings for 1.12 (stable_40 doesnt exist)
+    version = forge_mc_full_version
+    runDir = minecraft_run_dir
+    mappings = forge_mappings
     makeObfSourceJar = false //disable creation of sources jar
 }
 
@@ -56,13 +56,21 @@ processResources {
     //this will ensure that this task is redone when the versions change.
     inputs.property "version", project.version
     inputs.property "mcversion", project.minecraft.version
+    inputs.property "mod_id", mod_id
+    inputs.property "mod_name", mod_name
+    inputs.property "mod_description", mod_description
 
     //replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
         include "mcmod.info"
 
-        //replace version and mcversion
-        expand "version":project.version, "mcversion":project.minecraft.version
+        expand([
+            version         : project.version,
+            mcversion       : project.minecraft.version,
+            mod_id          : mod_id,
+            mod_name        : mod_name,
+            mod_description : mod_description,
+        ])
     }
 
     //copy everything else, that"s not the mcmod.info
