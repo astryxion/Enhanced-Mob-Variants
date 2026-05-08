@@ -2,7 +2,6 @@ package com.astryxion.moremobvariants;
 
 import com.astryxion.moremobvariants.client.renderer.*;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.monster.EntitySkeleton;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.monster.EntityZombie;
@@ -41,7 +40,6 @@ public class MoreMobVariants {
         public static void registerModels(ModelRegistryEvent event) {
 
             RenderingRegistry.registerEntityRenderingHandler(EntityCow.class, VariantCowRenderer::new);
-            RenderingRegistry.registerEntityRenderingHandler(EntityCreeper.class, VariantCreeperRenderer::new);
             RenderingRegistry.registerEntityRenderingHandler(EntityChicken.class, VariantChickenRenderer::new);
             RenderingRegistry.registerEntityRenderingHandler(EntityPig.class, VariantPigRenderer::new);
             RenderingRegistry.registerEntityRenderingHandler(EntitySheep.class, VariantSheepRenderer::new);
