@@ -4,7 +4,6 @@ import com.astryxion.moremobvariants.client.render.RenderVariantCow;
 import com.astryxion.moremobvariants.client.render.RenderVariantPig;
 import com.astryxion.moremobvariants.client.render.RenderVariantChicken;
 import com.astryxion.moremobvariants.client.render.RenderVariantSheep;
-import com.astryxion.moremobvariants.client.render.RenderVariantCreeper;
 import com.astryxion.moremobvariants.client.render.RenderVariantSkeleton;
 import com.astryxion.moremobvariants.client.render.RenderVariantSpider;
 import com.astryxion.moremobvariants.client.render.RenderVariantWolf;
@@ -18,7 +17,6 @@ import net.minecraft.entity.passive.EntityChicken;
 import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.entity.passive.EntityWolf;
 
-import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.monster.EntitySkeleton;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.monster.EntityZombie;
@@ -55,11 +53,6 @@ public class ClientProxy extends CommonProxy {
         );
 
         // Hostile mobs
-        RenderingRegistry.registerEntityRenderingHandler(
-            EntityCreeper.class,
-            new RenderVariantCreeper()
-        );
-
         RenderingRegistry.registerEntityRenderingHandler(
             EntitySkeleton.class,
             new RenderVariantSkeleton()
