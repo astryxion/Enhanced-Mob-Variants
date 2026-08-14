@@ -31,7 +31,7 @@ repositories {
 }
 
 base {
-    archivesName = mod_id
+    archivesName = archives_base_name
 }
 
 sourceSets {
@@ -69,6 +69,24 @@ neoForge {
             client()
 
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        // Local LAN testing: two offline-dev clients with distinct usernames and game dirs.
+        // These use Minecraft's normal development --username flag (same as the default Dev profile).
+        clientPlayer1 {
+            client()
+            ideName = "Client Player1"
+            gameDirectory = project.file('run-player1')
+            programArguments.addAll '--username', 'Player1'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        clientPlayer2 {
+            client()
+            ideName = "Client Player2"
+            gameDirectory = project.file('run-player2')
+            programArguments.addAll '--username', 'Player2'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
@@ -166,6 +184,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_name               : mod_name,
             mod_license            : mod_license,
             mod_version            : mod_version,
+            archives_base_name     : archives_base_name,
     ]
     inputs.properties replaceProperties
     expand replaceProperties
