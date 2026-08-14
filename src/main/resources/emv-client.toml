@@ -1,0 +1,30 @@
+# Enhanced Mob Variants - client visual toggles
+# Turn a mob off to hide its custom textures on this client.
+# Saving this file while the game is running applies immediately.
+
+# Turn custom chicken variants on or off.
+chicken = true
+
+# Turn custom cow variants on or off.
+cow = true
+
+# Turn custom cat variants on or off.
+cat = true
+
+# Turn custom pig variants on or off.
+pig = true
+
+# Turn custom sheep variants on or off.
+sheep = true
+
+# Turn custom wolf variants on or off.
+wolf = true
+
+# Turn custom zombie variants on or off.
+zombie = true
+
+# Turn custom skeleton variants on or off.
+skeleton = true
+
+# Turn custom spider variants on or off.
+spider = true
