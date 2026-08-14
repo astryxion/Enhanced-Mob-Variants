@@ -1,44 +1,50 @@
 package com.astryxion.emv;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.SheepFurModel;
-import net.minecraft.client.model.SheepModel;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.animal.sheep.SheepFurModel;
+import net.minecraft.client.model.animal.sheep.SheepModel;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.CatRenderer;
 import net.minecraft.client.renderer.entity.ChickenRenderer;
 import net.minecraft.client.renderer.entity.CowRenderer;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.PigRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.SheepRenderer;
 import net.minecraft.client.renderer.entity.SkeletonRenderer;
-import net.minecraft.client.renderer.entity.SpiderRenderer;
 import net.minecraft.client.renderer.entity.WolfRenderer;
+import net.minecraft.client.renderer.entity.SpiderRenderer;
 import net.minecraft.client.renderer.entity.ZombieRenderer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.client.renderer.entity.layers.SheepFurLayer;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FastColor;
+import net.minecraft.client.renderer.entity.layers.SheepWoolLayer;
+import net.minecraft.client.renderer.entity.state.CatRenderState;
+import net.minecraft.client.renderer.entity.state.ChickenRenderState;
+import net.minecraft.client.renderer.entity.state.CowRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.entity.state.PigRenderState;
+import net.minecraft.client.renderer.entity.state.SheepRenderState;
+import net.minecraft.client.renderer.entity.state.SkeletonRenderState;
+import net.minecraft.client.renderer.entity.state.WolfRenderState;
+import net.minecraft.client.renderer.entity.state.ZombieRenderState;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Cat;
-import net.minecraft.world.entity.animal.Chicken;
-import net.minecraft.world.entity.animal.Cow;
-import net.minecraft.world.entity.animal.Pig;
-import net.minecraft.world.entity.animal.Sheep;
-import net.minecraft.world.entity.animal.Wolf;
-import net.minecraft.world.entity.monster.Skeleton;
-import net.minecraft.world.entity.monster.Spider;
-import net.minecraft.world.entity.monster.Zombie;
-import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.entity.animal.chicken.Chicken;
+import net.minecraft.world.entity.animal.cow.Cow;
+import net.minecraft.world.entity.animal.feline.Cat;
+import net.minecraft.world.entity.animal.pig.Pig;
+import net.minecraft.world.entity.animal.sheep.Sheep;
+import net.minecraft.world.entity.animal.wolf.Wolf;
+import net.minecraft.world.entity.monster.skeleton.Skeleton;
+import net.minecraft.world.entity.monster.spider.Spider;
+import net.minecraft.world.entity.monster.zombie.Zombie;
+import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 public class ClientHandler implements ClientModInitializer {
 
@@ -46,15 +52,15 @@ public class ClientHandler implements ClientModInitializer {
     public void onInitializeClient() {
         Config.loadClient();
         ClientTickEvents.END_CLIENT_TICK.register(client -> Config.reloadClientIfChanged());
-        EntityRendererRegistry.register(EntityType.CHICKEN, VariantChickenRenderer::new);
-        EntityRendererRegistry.register(EntityType.COW, VariantCowRenderer::new);
-        EntityRendererRegistry.register(EntityType.CAT, VariantCatRenderer::new);
-        EntityRendererRegistry.register(EntityType.PIG, VariantPigRenderer::new);
-        EntityRendererRegistry.register(EntityType.SKELETON, VariantSkeletonRenderer::new);
-        EntityRendererRegistry.register(EntityType.SPIDER, VariantSpiderRenderer::new);
-        EntityRendererRegistry.register(EntityType.ZOMBIE, VariantZombieRenderer::new);
-        EntityRendererRegistry.register(EntityType.SHEEP, VariantSheepRenderer::new);
-        EntityRendererRegistry.register(EntityType.WOLF, VariantWolfRenderer::new);
+        EntityRenderers.register(EntityType.CHICKEN, VariantChickenRenderer::new);
+        EntityRenderers.register(EntityType.COW, VariantCowRenderer::new);
+        EntityRenderers.register(EntityType.CAT, VariantCatRenderer::new);
+        EntityRenderers.register(EntityType.PIG, VariantPigRenderer::new);
+        EntityRenderers.register(EntityType.SKELETON, VariantSkeletonRenderer::new);
+        EntityRenderers.register(EntityType.SPIDER, VariantSpiderRenderer::new);
+        EntityRenderers.register(EntityType.ZOMBIE, VariantZombieRenderer::new);
+        EntityRenderers.register(EntityType.SHEEP, VariantSheepRenderer::new);
+        EntityRenderers.register(EntityType.WOLF, VariantWolfRenderer::new);
     }
 
     private static String variantPath(String mob, String name) {
@@ -171,18 +177,74 @@ public class ClientHandler implements ClientModInitializer {
         };
     }
 
+    // --- RENDER STATES (carry attachment variant for texture / wool paths) ---
+
+    private static final class MmvChickenRenderState extends ChickenRenderState {
+        int moreMobVariantsVariant;
+    }
+
+    private static final class MmvCowRenderState extends CowRenderState {
+        int moreMobVariantsVariant;
+    }
+
+    private static final class MmvCatRenderState extends CatRenderState {
+        int moreMobVariantsVariant;
+    }
+
+    private static final class MmvPigRenderState extends PigRenderState {
+        int moreMobVariantsVariant;
+    }
+
+    private static final class MmvSkeletonRenderState extends SkeletonRenderState {
+        int moreMobVariantsVariant;
+    }
+
+    private static final class MmvSpiderRenderState extends LivingEntityRenderState {
+        int moreMobVariantsVariant;
+    }
+
+    private static final class MmvZombieRenderState extends ZombieRenderState {
+        int moreMobVariantsVariant;
+    }
+
+    private static final class MmvSheepRenderState extends SheepRenderState {
+        int moreMobVariantsVariant;
+    }
+
+    private static final class MmvWolfRenderState extends WolfRenderState {
+        int moreMobVariantsVariant;
+    }
+
+    // --- RENDERERS ---
+
     private static class VariantChickenRenderer extends ChickenRenderer {
         public VariantChickenRenderer(EntityRendererProvider.Context ctx) {
             super(ctx);
         }
 
         @Override
-        public ResourceLocation getTextureLocation(Chicken entity) {
-            int v = entity.getAttachedOrElse(Registration.CHICKEN_VARIANT, 0);
-            if (v != 0 && Config.enabled(Config.CHICKEN)) {
-                return ResourceLocation.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("chicken", getChickenName(v)));
+        public ChickenRenderState createRenderState() {
+            return new MmvChickenRenderState();
+        }
+
+        @Override
+        public void extractRenderState(Chicken entity, ChickenRenderState state, float partialTick) {
+            super.extractRenderState(entity, state, partialTick);
+            if (state instanceof MmvChickenRenderState m) {
+                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.CHICKEN_VARIANT, 0);
             }
-            return super.getTextureLocation(entity);
+        }
+
+        @Override
+        public Identifier getTextureLocation(ChickenRenderState state) {
+            if (state instanceof MmvChickenRenderState m) {
+                int v = m.moreMobVariantsVariant;
+                if (v != 0 && Config.enabled(Config.CHICKEN)) {
+                    String path = variantPath("chicken", getChickenName(v));
+                    return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
+                }
+            }
+            return super.getTextureLocation(state);
         }
     }
 
@@ -192,12 +254,28 @@ public class ClientHandler implements ClientModInitializer {
         }
 
         @Override
-        public ResourceLocation getTextureLocation(Cow entity) {
-            int v = entity.getAttachedOrElse(Registration.COW_VARIANT, 0);
-            if (v != 0 && Config.enabled(Config.COW)) {
-                return ResourceLocation.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("cow", getCowName(v)));
+        public CowRenderState createRenderState() {
+            return new MmvCowRenderState();
+        }
+
+        @Override
+        public void extractRenderState(Cow entity, CowRenderState state, float partialTick) {
+            super.extractRenderState(entity, state, partialTick);
+            if (state instanceof MmvCowRenderState m) {
+                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.COW_VARIANT, 0);
             }
-            return super.getTextureLocation(entity);
+        }
+
+        @Override
+        public Identifier getTextureLocation(CowRenderState state) {
+            if (state instanceof MmvCowRenderState m) {
+                int v = m.moreMobVariantsVariant;
+                if (v != 0 && Config.enabled(Config.COW)) {
+                    String path = variantPath("cow", getCowName(v));
+                    return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
+                }
+            }
+            return super.getTextureLocation(state);
         }
     }
 
@@ -207,12 +285,28 @@ public class ClientHandler implements ClientModInitializer {
         }
 
         @Override
-        public ResourceLocation getTextureLocation(Cat entity) {
-            int v = entity.getAttachedOrElse(Registration.CAT_VARIANT, 0);
-            if (v != 0 && Config.enabled(Config.CAT)) {
-                return ResourceLocation.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("cat", getCatTextureBaseName(v)));
+        public CatRenderState createRenderState() {
+            return new MmvCatRenderState();
+        }
+
+        @Override
+        public void extractRenderState(Cat entity, CatRenderState state, float partialTick) {
+            super.extractRenderState(entity, state, partialTick);
+            if (state instanceof MmvCatRenderState m) {
+                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.CAT_VARIANT, 0);
             }
-            return super.getTextureLocation(entity);
+        }
+
+        @Override
+        public Identifier getTextureLocation(CatRenderState state) {
+            if (state instanceof MmvCatRenderState m) {
+                int v = m.moreMobVariantsVariant;
+                if (v != 0 && Config.enabled(Config.CAT)) {
+                    String path = variantPath("cat", getCatTextureBaseName(v));
+                    return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
+                }
+            }
+            return super.getTextureLocation(state);
         }
     }
 
@@ -222,27 +316,58 @@ public class ClientHandler implements ClientModInitializer {
         }
 
         @Override
-        public ResourceLocation getTextureLocation(Pig entity) {
-            int v = entity.getAttachedOrElse(Registration.PIG_VARIANT, 0);
-            if (v != 0 && Config.enabled(Config.PIG)) {
-                return ResourceLocation.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("pig", getPigName(v)));
+        public PigRenderState createRenderState() {
+            return new MmvPigRenderState();
+        }
+
+        @Override
+        public void extractRenderState(Pig entity, PigRenderState state, float partialTick) {
+            super.extractRenderState(entity, state, partialTick);
+            if (state instanceof MmvPigRenderState m) {
+                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.PIG_VARIANT, 0);
             }
-            return super.getTextureLocation(entity);
+        }
+
+        @Override
+        public Identifier getTextureLocation(PigRenderState state) {
+            if (state instanceof MmvPigRenderState m) {
+                int v = m.moreMobVariantsVariant;
+                if (v != 0 && Config.enabled(Config.PIG)) {
+                    String path = variantPath("pig", getPigName(v));
+                    return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
+                }
+            }
+            return super.getTextureLocation(state);
         }
     }
 
-    private static class VariantSkeletonRenderer extends SkeletonRenderer<Skeleton> {
+    private static class VariantSkeletonRenderer extends SkeletonRenderer {
         public VariantSkeletonRenderer(EntityRendererProvider.Context ctx) {
             super(ctx);
         }
 
         @Override
-        public ResourceLocation getTextureLocation(Skeleton entity) {
-            int v = entity.getAttachedOrElse(Registration.SKELETON_VARIANT, 0);
-            if (v != 0 && Config.enabled(Config.SKELETON)) {
-                return ResourceLocation.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("skeleton", getSkeletonName(v)));
+        public SkeletonRenderState createRenderState() {
+            return new MmvSkeletonRenderState();
+        }
+
+        @Override
+        public void extractRenderState(Skeleton entity, SkeletonRenderState state, float partialTick) {
+            super.extractRenderState(entity, state, partialTick);
+            if (state instanceof MmvSkeletonRenderState m) {
+                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.SKELETON_VARIANT, 0);
             }
-            return super.getTextureLocation(entity);
+        }
+
+        @Override
+        public Identifier getTextureLocation(SkeletonRenderState state) {
+            if (state instanceof MmvSkeletonRenderState m) {
+                int v = m.moreMobVariantsVariant;
+                if (v != 0 && Config.enabled(Config.SKELETON)) {
+                    return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("skeleton", getSkeletonName(v)));
+                }
+            }
+            return super.getTextureLocation(state);
         }
     }
 
@@ -252,12 +377,27 @@ public class ClientHandler implements ClientModInitializer {
         }
 
         @Override
-        public ResourceLocation getTextureLocation(Spider entity) {
-            int v = entity.getAttachedOrElse(Registration.SPIDER_VARIANT, 0);
-            if (v != 0 && Config.enabled(Config.SPIDER)) {
-                return ResourceLocation.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("spider", getSpiderName(v)));
+        public LivingEntityRenderState createRenderState() {
+            return new MmvSpiderRenderState();
+        }
+
+        @Override
+        public void extractRenderState(Spider entity, LivingEntityRenderState state, float partialTick) {
+            super.extractRenderState(entity, state, partialTick);
+            if (state instanceof MmvSpiderRenderState m) {
+                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.SPIDER_VARIANT, 0);
             }
-            return super.getTextureLocation(entity);
+        }
+
+        @Override
+        public Identifier getTextureLocation(LivingEntityRenderState state) {
+            if (state instanceof MmvSpiderRenderState m) {
+                int v = m.moreMobVariantsVariant;
+                if (v != 0 && Config.enabled(Config.SPIDER)) {
+                    return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("spider", getSpiderName(v)));
+                }
+            }
+            return super.getTextureLocation(state);
         }
     }
 
@@ -267,12 +407,28 @@ public class ClientHandler implements ClientModInitializer {
         }
 
         @Override
-        public ResourceLocation getTextureLocation(Zombie entity) {
-            int v = entity.getAttachedOrElse(Registration.ZOMBIE_VARIANT, 0);
-            if (v != 0 && Config.enabled(Config.ZOMBIE)) {
-                return ResourceLocation.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("zombie", getZombieName(v)));
+        public ZombieRenderState createRenderState() {
+            return new MmvZombieRenderState();
+        }
+
+        @Override
+        public void extractRenderState(Zombie entity, ZombieRenderState state, float partialTick) {
+            super.extractRenderState(entity, state, partialTick);
+            if (state instanceof MmvZombieRenderState m) {
+                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.ZOMBIE_VARIANT, 0);
             }
-            return super.getTextureLocation(entity);
+        }
+
+        @Override
+        public Identifier getTextureLocation(ZombieRenderState state) {
+            if (state instanceof MmvZombieRenderState m) {
+                int v = m.moreMobVariantsVariant;
+                if (v != 0 && Config.enabled(Config.ZOMBIE)) {
+                    String path = variantPath("zombie", getZombieName(v));
+                    return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
+                }
+            }
+            return super.getTextureLocation(state);
         }
     }
 
@@ -282,118 +438,137 @@ public class ClientHandler implements ClientModInitializer {
         }
 
         @Override
-        public ResourceLocation getTextureLocation(Wolf entity) {
-            int v = entity.getAttachedOrElse(Registration.WOLF_VARIANT, 0);
-            if (v >= 1 && v <= 6 && Config.enabled(Config.WOLF)) {
-                String base = getWolfBreedName(v);
-                String suffix = entity.isTame() ? "tame" : (entity.isAngry() ? "angry" : "wild");
-                return ResourceLocation.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("wolf", base + "_" + suffix));
+        public WolfRenderState createRenderState() {
+            return new MmvWolfRenderState();
+        }
+
+        @Override
+        public void extractRenderState(Wolf entity, WolfRenderState state, float partialTick) {
+            super.extractRenderState(entity, state, partialTick);
+            if (state instanceof MmvWolfRenderState m) {
+                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.WOLF_VARIANT, 0);
             }
-            return super.getTextureLocation(entity);
+        }
+
+        @Override
+        public Identifier getTextureLocation(WolfRenderState state) {
+            if (state instanceof MmvWolfRenderState m) {
+                int v = m.moreMobVariantsVariant;
+                if (v >= 1 && v <= 6 && Config.enabled(Config.WOLF)) {
+                    String base = getWolfBreedName(v);
+                    String suffix = state.collarColor != null ? "tame" : (state.isAngry ? "angry" : "wild");
+                    String path = variantPath("wolf", base + "_" + suffix);
+                    return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
+                }
+            }
+            return super.getTextureLocation(state);
         }
     }
+
+    // --- SHEEP LOGIC ---
 
     private static class VariantSheepRenderer extends SheepRenderer {
         public VariantSheepRenderer(EntityRendererProvider.Context ctx) {
             super(ctx);
-            this.layers.removeIf(layer -> layer.getClass() == SheepFurLayer.class);
+            this.layers.removeIf(layer -> layer.getClass() == SheepWoolLayer.class);
             this.addLayer(new VariantSheepWoolLayer(this, ctx.getModelSet()));
         }
 
         @Override
-        public ResourceLocation getTextureLocation(Sheep entity) {
-            int v = entity.getAttachedOrElse(Registration.SHEEP_VARIANT, 0);
-            if (v != 0 && Config.enabled(Config.SHEEP)) {
-                return ResourceLocation.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("sheep", getSheepName(v)));
+        public SheepRenderState createRenderState() {
+            return new MmvSheepRenderState();
+        }
+
+        @Override
+        public void extractRenderState(Sheep entity, SheepRenderState state, float partialTick) {
+            super.extractRenderState(entity, state, partialTick);
+            if (state instanceof MmvSheepRenderState m) {
+                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.SHEEP_VARIANT, 0);
             }
-            return super.getTextureLocation(entity);
+        }
+
+        @Override
+        public Identifier getTextureLocation(SheepRenderState state) {
+            if (state instanceof MmvSheepRenderState m) {
+                int v = m.moreMobVariantsVariant;
+                if (v != 0 && Config.enabled(Config.SHEEP)) {
+                    String path = variantPath("sheep", getSheepName(v));
+                    return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
+                }
+            }
+            return super.getTextureLocation(state);
         }
     }
 
     /**
-     * Same behavior as {@link SheepFurLayer}: vanilla wool when the variant is 0,
-     * mod wool texture and full white tint when the variant is greater than 0 (matches prior {@code 0xFFFFFFFF}).
+     * Same behavior as {@link SheepWoolLayer}: vanilla wool when {@code moreMobVariantsVariant == 0},
+     * mod wool texture and full white tint when {@code moreMobVariantsVariant > 0} (matches prior {@code 0xFFFFFFFF}).
      */
-    private static class VariantSheepWoolLayer extends RenderLayer<Sheep, SheepModel<Sheep>> {
-        private static final ResourceLocation SHEEP_FUR_LOCATION = ResourceLocation.withDefaultNamespace("textures/entity/sheep/sheep_fur.png");
-        private final SheepFurModel<Sheep> model;
+    private static class VariantSheepWoolLayer extends RenderLayer<SheepRenderState, SheepModel> {
+        private static final Identifier SHEEP_WOOL_LOCATION = Identifier.withDefaultNamespace("textures/entity/sheep/sheep_wool.png");
+        private final EntityModel<SheepRenderState> adultModel;
+        private final EntityModel<SheepRenderState> babyModel;
 
-        public VariantSheepWoolLayer(RenderLayerParent<Sheep, SheepModel<Sheep>> parent, EntityModelSet modelSet) {
+        public VariantSheepWoolLayer(RenderLayerParent<SheepRenderState, SheepModel> parent, EntityModelSet modelSet) {
             super(parent);
-            this.model = new SheepFurModel<>(modelSet.bakeLayer(ModelLayers.SHEEP_FUR));
+            this.adultModel = new SheepFurModel(modelSet.bakeLayer(ModelLayers.SHEEP_WOOL));
+            this.babyModel = new SheepFurModel(modelSet.bakeLayer(ModelLayers.SHEEP_BABY_WOOL));
         }
 
         @Override
-        public void render(
-            PoseStack poseStack,
-            MultiBufferSource buffer,
-            int packedLight,
-            Sheep sheep,
-            float limbSwing,
-            float limbSwingAmount,
-            float partialTick,
-            float ageInTicks,
-            float netHeadYaw,
-            float headPitch
-        ) {
-            if (sheep.isSheared()) {
-                return;
-            }
-
-            ResourceLocation woolTexture = resolveWoolTexture(sheep);
-            if (sheep.isInvisible()) {
-                Minecraft minecraft = Minecraft.getInstance();
-                if (minecraft.shouldEntityAppearGlowing(sheep)) {
-                    this.getParentModel().copyPropertiesTo(this.model);
-                    this.model.prepareMobModel(sheep, limbSwing, limbSwingAmount, partialTick);
-                    this.model.setupAnim(sheep, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-                    VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.outline(woolTexture));
-                    this.model.renderToBuffer(poseStack, vertexConsumer, packedLight, LivingEntityRenderer.getOverlayCoords(sheep, 0.0F), -16777216);
+        public void submit(PoseStack poseStack, SubmitNodeCollector collector, int packedLight, SheepRenderState state, float limbSwing, float limbSwingAmount) {
+            if (!state.isSheared) {
+                EntityModel<SheepRenderState> entityModel = state.isBaby ? this.babyModel : this.adultModel;
+                if (state.isInvisible) {
+                    if (state.appearsGlowing()) {
+                        Identifier woolTexture = resolveWoolTexture(state);
+                        collector.submitModel(
+                            entityModel,
+                            state,
+                            poseStack,
+                            RenderTypes.outline(woolTexture),
+                            packedLight,
+                            LivingEntityRenderer.getOverlayCoords(state, 0.0F),
+                            -16777216,
+                            null,
+                            state.outlineColor,
+                            null
+                        );
+                    }
+                } else {
+                    if (state instanceof MmvSheepRenderState m && m.moreMobVariantsVariant > 0 && Config.enabled(Config.SHEEP)) {
+                        coloredCutoutModelCopyLayerRender(
+                            entityModel,
+                            resolveWoolTexture(state),
+                            poseStack,
+                            collector,
+                            packedLight,
+                            state,
+                            0xFFFFFFFF,
+                            state.isBaby ? 1 : 0
+                        );
+                    } else {
+                        coloredCutoutModelCopyLayerRender(
+                            entityModel,
+                            SHEEP_WOOL_LOCATION,
+                            poseStack,
+                            collector,
+                            packedLight,
+                            state,
+                            state.getWoolColor(),
+                            state.isBaby ? 1 : 0
+                        );
+                    }
                 }
-                return;
             }
-
-            int color;
-            int variant = sheep.getAttachedOrElse(Registration.SHEEP_VARIANT, 0);
-            if (variant > 0 && Config.enabled(Config.SHEEP)) {
-                color = 0xFFFFFFFF;
-            } else if (sheep.hasCustomName() && "jeb_".equals(sheep.getName().getString())) {
-                int period = 25;
-                int cycle = sheep.tickCount / period + sheep.getId();
-                int dyeCount = DyeColor.values().length;
-                int from = cycle % dyeCount;
-                int to = (cycle + 1) % dyeCount;
-                float delta = ((float) (sheep.tickCount % period) + partialTick) / period;
-                color = FastColor.ARGB32.lerp(delta, Sheep.getColor(DyeColor.byId(from)), Sheep.getColor(DyeColor.byId(to)));
-            } else {
-                color = Sheep.getColor(sheep.getColor());
-            }
-
-            coloredCutoutModelCopyLayerRender(
-                this.getParentModel(),
-                this.model,
-                woolTexture,
-                poseStack,
-                buffer,
-                packedLight,
-                sheep,
-                limbSwing,
-                limbSwingAmount,
-                ageInTicks,
-                netHeadYaw,
-                headPitch,
-                partialTick,
-                color
-            );
         }
 
-        private static ResourceLocation resolveWoolTexture(Sheep sheep) {
-            int variant = sheep.getAttachedOrElse(Registration.SHEEP_VARIANT, 0);
-            if (variant > 0 && Config.enabled(Config.SHEEP)) {
-                String path = "textures/entity/sheep/wool/" + getSheepName(variant) + ".png";
-                return ResourceLocation.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
+        private static Identifier resolveWoolTexture(SheepRenderState state) {
+            if (state instanceof MmvSheepRenderState m && m.moreMobVariantsVariant > 0 && Config.enabled(Config.SHEEP)) {
+                String path = "textures/entity/sheep/wool/" + getSheepName(m.moreMobVariantsVariant) + ".png";
+                return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
             }
-            return SHEEP_FUR_LOCATION;
+            return SHEEP_WOOL_LOCATION;
         }
     }
 }

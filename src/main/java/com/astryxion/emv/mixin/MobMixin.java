@@ -2,8 +2,8 @@ package com.astryxion.emv.mixin;
 
 import com.astryxion.emv.EventHandler;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.level.ServerLevelAccessor;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,7 +17,7 @@ public class MobMixin {
         SpawnGroupData groupData,
         ServerLevelAccessor level,
         DifficultyInstance difficulty,
-        MobSpawnType spawnReason
+        EntitySpawnReason spawnReason
     ) {
         return EventHandler.onFinalizeSpawn((Mob) (Object) this, spawnReason, groupData);
     }

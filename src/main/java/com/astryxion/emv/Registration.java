@@ -5,7 +5,7 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 
 public final class Registration {
@@ -31,7 +31,7 @@ public final class Registration {
 
     private static AttachmentType<Integer> variant(String name) {
         return AttachmentRegistry.create(
-            ResourceLocation.fromNamespaceAndPath(EnhancedMobVariants.MODID, name),
+            Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, name),
             builder -> builder
                 .persistent(Codec.INT)
                 .syncWith(ByteBufCodecs.VAR_INT, AttachmentSyncPredicate.all())
