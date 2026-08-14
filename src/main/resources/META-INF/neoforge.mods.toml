@@ -1,24 +1,27 @@
 modLoader="javafml"
 loaderVersion="[4,)"
-license="MIT"
+license="GPL-3.0"
 
 [[mods]]
-    modId="moremobvariants"
-    version="1.21.11-1.0.0"
+    modId="emv"
+    version="1.21.11-1.1.0"
     displayName="Enhanced Mob Variants"
+    displayURL="https://github.com/astryxion/Mob-Variants"
+    logoFile="icon.png"
     authors="Astryxion"
+    credits="Astryxion, nyuppo"
     description="Adds unique visual variants to vanilla mobs to improve world diversity."
 
-[[dependencies.moremobvariants]]
+[[dependencies.emv]]
     modId="neoforge"
     type="required"
-    versionRange="[21.1,)"
+    versionRange="[21.11.45,)"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.moremobvariants]]
+[[dependencies.emv]]
     modId="minecraft"
     type="required"
-    versionRange="[1.21.11,)"
+    versionRange="[1.21.11]"
     ordering="NONE"
     side="BOTH"
