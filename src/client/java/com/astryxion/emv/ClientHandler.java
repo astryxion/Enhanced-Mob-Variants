@@ -63,8 +63,10 @@ public class ClientHandler implements ClientModInitializer {
         EntityRenderers.register(EntityType.WOLF, VariantWolfRenderer::new);
     }
 
-    private static String variantPath(String mob, String name) {
-        return "textures/entity/" + mob + "/" + name + ".png";
+    private static String variantPath(String mob, String name, boolean baby) {
+        return baby
+            ? "textures/entity/" + mob + "/baby/baby_" + name + ".png"
+            : "textures/entity/" + mob + "/" + name + ".png";
     }
 
     private static String getChickenName(int variant) {
@@ -240,7 +242,7 @@ public class ClientHandler implements ClientModInitializer {
             if (state instanceof MmvChickenRenderState m) {
                 int v = m.moreMobVariantsVariant;
                 if (v != 0 && Config.enabled(Config.CHICKEN)) {
-                    String path = variantPath("chicken", getChickenName(v));
+                    String path = variantPath("chicken", getChickenName(v), state.isBaby);
                     return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
                 }
             }
@@ -271,7 +273,7 @@ public class ClientHandler implements ClientModInitializer {
             if (state instanceof MmvCowRenderState m) {
                 int v = m.moreMobVariantsVariant;
                 if (v != 0 && Config.enabled(Config.COW)) {
-                    String path = variantPath("cow", getCowName(v));
+                    String path = variantPath("cow", getCowName(v), state.isBaby);
                     return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
                 }
             }
@@ -302,7 +304,7 @@ public class ClientHandler implements ClientModInitializer {
             if (state instanceof MmvCatRenderState m) {
                 int v = m.moreMobVariantsVariant;
                 if (v != 0 && Config.enabled(Config.CAT)) {
-                    String path = variantPath("cat", getCatTextureBaseName(v));
+                    String path = variantPath("cat", getCatTextureBaseName(v), state.isBaby);
                     return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
                 }
             }
@@ -333,7 +335,7 @@ public class ClientHandler implements ClientModInitializer {
             if (state instanceof MmvPigRenderState m) {
                 int v = m.moreMobVariantsVariant;
                 if (v != 0 && Config.enabled(Config.PIG)) {
-                    String path = variantPath("pig", getPigName(v));
+                    String path = variantPath("pig", getPigName(v), state.isBaby);
                     return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
                 }
             }
@@ -361,10 +363,13 @@ public class ClientHandler implements ClientModInitializer {
 
         @Override
         public Identifier getTextureLocation(SkeletonRenderState state) {
+            if (state.isBaby) {
+                return super.getTextureLocation(state);
+            }
             if (state instanceof MmvSkeletonRenderState m) {
                 int v = m.moreMobVariantsVariant;
                 if (v != 0 && Config.enabled(Config.SKELETON)) {
-                    return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("skeleton", getSkeletonName(v)));
+                    return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("skeleton", getSkeletonName(v), false));
                 }
             }
             return super.getTextureLocation(state);
@@ -391,10 +396,13 @@ public class ClientHandler implements ClientModInitializer {
 
         @Override
         public Identifier getTextureLocation(LivingEntityRenderState state) {
+            if (state.isBaby) {
+                return super.getTextureLocation(state);
+            }
             if (state instanceof MmvSpiderRenderState m) {
                 int v = m.moreMobVariantsVariant;
                 if (v != 0 && Config.enabled(Config.SPIDER)) {
-                    return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("spider", getSpiderName(v)));
+                    return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, variantPath("spider", getSpiderName(v), false));
                 }
             }
             return super.getTextureLocation(state);
@@ -424,7 +432,7 @@ public class ClientHandler implements ClientModInitializer {
             if (state instanceof MmvZombieRenderState m) {
                 int v = m.moreMobVariantsVariant;
                 if (v != 0 && Config.enabled(Config.ZOMBIE)) {
-                    String path = variantPath("zombie", getZombieName(v));
+                    String path = variantPath("zombie", getZombieName(v), state.isBaby);
                     return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
                 }
             }
@@ -457,7 +465,7 @@ public class ClientHandler implements ClientModInitializer {
                 if (v >= 1 && v <= 6 && Config.enabled(Config.WOLF)) {
                     String base = getWolfBreedName(v);
                     String suffix = state.collarColor != null ? "tame" : (state.isAngry ? "angry" : "wild");
-                    String path = variantPath("wolf", base + "_" + suffix);
+                    String path = variantPath("wolf", base + "_" + suffix, state.isBaby);
                     return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
                 }
             }
@@ -492,7 +500,7 @@ public class ClientHandler implements ClientModInitializer {
             if (state instanceof MmvSheepRenderState m) {
                 int v = m.moreMobVariantsVariant;
                 if (v != 0 && Config.enabled(Config.SHEEP)) {
-                    String path = variantPath("sheep", getSheepName(v));
+                    String path = variantPath("sheep", getSheepName(v), state.isBaby);
                     return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
                 }
             }
@@ -506,6 +514,7 @@ public class ClientHandler implements ClientModInitializer {
      */
     private static class VariantSheepWoolLayer extends RenderLayer<SheepRenderState, SheepModel> {
         private static final Identifier SHEEP_WOOL_LOCATION = Identifier.withDefaultNamespace("textures/entity/sheep/sheep_wool.png");
+        private static final Identifier BABY_SHEEP_WOOL_LOCATION = Identifier.withDefaultNamespace("textures/entity/sheep/sheep_wool_baby.png");
         private final EntityModel<SheepRenderState> adultModel;
         private final EntityModel<SheepRenderState> babyModel;
 
@@ -550,7 +559,7 @@ public class ClientHandler implements ClientModInitializer {
                     } else {
                         coloredCutoutModelCopyLayerRender(
                             entityModel,
-                            SHEEP_WOOL_LOCATION,
+                            state.isBaby ? BABY_SHEEP_WOOL_LOCATION : SHEEP_WOOL_LOCATION,
                             poseStack,
                             collector,
                             packedLight,
@@ -565,10 +574,12 @@ public class ClientHandler implements ClientModInitializer {
 
         private static Identifier resolveWoolTexture(SheepRenderState state) {
             if (state instanceof MmvSheepRenderState m && m.moreMobVariantsVariant > 0 && Config.enabled(Config.SHEEP)) {
-                String path = "textures/entity/sheep/wool/" + getSheepName(m.moreMobVariantsVariant) + ".png";
+                String path = state.isBaby
+                    ? "textures/entity/sheep/wool/baby/baby_" + getSheepName(m.moreMobVariantsVariant) + ".png"
+                    : "textures/entity/sheep/wool/" + getSheepName(m.moreMobVariantsVariant) + ".png";
                 return Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, path);
             }
-            return SHEEP_WOOL_LOCATION;
+            return state.isBaby ? BABY_SHEEP_WOOL_LOCATION : SHEEP_WOOL_LOCATION;
         }
     }
 }

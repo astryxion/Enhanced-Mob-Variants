@@ -14,4 +14,4 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 See the [LICENSE](LICENSE) file for the full license text.
 
-Requires Minecraft 1.21.11, Fabric Loader, and Fabric API.
+Requires Minecraft 26.1 or newer, Fabric Loader, and Fabric API.
