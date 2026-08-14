@@ -32,7 +32,7 @@ import net.minecraft.client.renderer.entity.state.WolfRenderState;
 import net.minecraft.client.renderer.entity.state.ZombieRenderState;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.chicken.Chicken;
 import net.minecraft.world.entity.animal.cow.Cow;
 import net.minecraft.world.entity.animal.feline.Cat;
@@ -52,15 +52,15 @@ public class ClientHandler implements ClientModInitializer {
     public void onInitializeClient() {
         Config.loadClient();
         ClientTickEvents.END_CLIENT_TICK.register(client -> Config.reloadClientIfChanged());
-        EntityRenderers.register(EntityType.CHICKEN, VariantChickenRenderer::new);
-        EntityRenderers.register(EntityType.COW, VariantCowRenderer::new);
-        EntityRenderers.register(EntityType.CAT, VariantCatRenderer::new);
-        EntityRenderers.register(EntityType.PIG, VariantPigRenderer::new);
-        EntityRenderers.register(EntityType.SKELETON, VariantSkeletonRenderer::new);
-        EntityRenderers.register(EntityType.SPIDER, VariantSpiderRenderer::new);
-        EntityRenderers.register(EntityType.ZOMBIE, VariantZombieRenderer::new);
-        EntityRenderers.register(EntityType.SHEEP, VariantSheepRenderer::new);
-        EntityRenderers.register(EntityType.WOLF, VariantWolfRenderer::new);
+        EntityRenderers.register(EntityTypes.CHICKEN, VariantChickenRenderer::new);
+        EntityRenderers.register(EntityTypes.COW, VariantCowRenderer::new);
+        EntityRenderers.register(EntityTypes.CAT, VariantCatRenderer::new);
+        EntityRenderers.register(EntityTypes.PIG, VariantPigRenderer::new);
+        EntityRenderers.register(EntityTypes.SKELETON, VariantSkeletonRenderer::new);
+        EntityRenderers.register(EntityTypes.SPIDER, VariantSpiderRenderer::new);
+        EntityRenderers.register(EntityTypes.ZOMBIE, VariantZombieRenderer::new);
+        EntityRenderers.register(EntityTypes.SHEEP, VariantSheepRenderer::new);
+        EntityRenderers.register(EntityTypes.WOLF, VariantWolfRenderer::new);
     }
 
     private static String variantPath(String mob, String name, boolean baby) {
