@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.astryxion.emv.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "emv.refmap.json",
+  "mixins": [
+    "MobMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

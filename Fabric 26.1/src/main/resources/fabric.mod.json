@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${version}",
+  "name": "${mod_name}",
+  "description": "Adds unique visual variants to vanilla mobs to improve world diversity.",
+  "authors": [
+    "Astryxion"
+  ],
+  "contributors": [
+    "nyuppo"
+  ],
+  "contact": {
+    "homepage": "https://github.com/astryxion/Mob-Variants",
+    "sources": "https://github.com/astryxion/Mob-Variants"
+  },
+  "license": "${mod_license}",
+  "icon": "assets/emv/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.astryxion.emv.EnhancedMobVariants"
+    ],
+    "client": [
+      "com.astryxion.emv.ClientHandler"
+    ]
+  },
+  "mixins": [
+    "emv.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": ">=26.1",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

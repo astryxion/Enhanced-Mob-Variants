@@ -1,0 +1,13 @@
+emv.configuration.title=Enhanced Mob Variants
+emv.configuration.spawn_mode=Spawn Mode
+emv.configuration.spawn_mode.random=Random
+emv.configuration.spawn_mode.uniform=Uniform
+emv.configuration.chicken=Chicken
+emv.configuration.cow=Cow
+emv.configuration.cat=Cat
+emv.configuration.pig=Pig
+emv.configuration.sheep=Sheep
+emv.configuration.wolf=Wolf
+emv.configuration.zombie=Zombie
+emv.configuration.skeleton=Skeleton
+emv.configuration.spider=Spider
