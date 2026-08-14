@@ -3,14 +3,12 @@
     "modid": "${mod_id}",
     "name": "${mod_name}",
     "description": "${mod_description}",
-    "version": "${version}",
-    "mcversion": "${mcversion}",
-    "url": "",
-    "updateUrl": "",
-    "authorList": ["Astryxion"],
-    "credits": "",
-    "logoFile": "",
-    "screenshots": [],
+    "version": "${mod_version}",
+    "mcversion": "${minecraft_version}",
+    "url": "https://github.com/astryxion/Mob-Variants",
+    "authorList": ["${mod_authors}"],
+    "credits": "Astryxion, nyuppo",
+    "logoFile": "icon.png",
     "dependencies": []
   }
 ]

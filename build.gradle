@@ -1,97 +1,77 @@
-buildscript {
-    repositories {
-        //new forge repository
-        maven { url "https://maven.minecraftforge.net" }
-    }
-    dependencies {
-        classpath "net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT"
-    }
-}
-
 plugins {
-    id "java"
-    id "com.github.johnrengelman.shadow" version "2.0.4"
+    id 'java'
+    id 'eclipse'
+    id 'maven-publish'
+    id 'com.gtnewhorizons.retrofuturagradle' version '2.0.3'
 }
-
-apply plugin: "net.minecraftforge.gradle.forge"
 
 version = mod_version
-group = mod_group
-archivesBaseName = mod_archives_base_name
+group = mod_group_id
 
-sourceCompatibility = targetCompatibility = JavaVersion.toVersion(java_source_target)
-compileJava.options.encoding = "UTF-8"
-
-minecraft {
-    version = forge_mc_full_version
-    runDir = minecraft_run_dir
-    mappings = forge_mappings
-    makeObfSourceJar = false //disable creation of sources jar
+base {
+    archivesName = archives_base_name
 }
 
-configurations {
-    shade
-    compile.extendsFrom(shade)
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
+minecraft {
+    mcVersion = '1.12.2'
+    username = 'Dev'
+    mcpMappingChannel = 'stable'
+    mcpMappingVersion = '39'
+    extraRunJvmArguments.add("-ea:${project.group}")
 }
 
 repositories {
-    //repos for libraries (not gradle plugins)
-    //example:
-    //maven { url "https://repo.dreamys.studio/" }
-}
-
-dependencies {
-    //shade will bundle your library to the output jar
-    //your libraries will be accessible outside of intellij
-    //example:
-    //shade "studio.dreamys:libSkyblock:1.1.1"
-
-    //compile will make your library available only in this dev environment
-    //your libraries wont be accessible outside of intellij
-    //example:
-    //compile "studio.dreamys:libSkyblock:1.1.1"
+    maven {
+        name = 'Forge'
+        url = 'https://maven.minecraftforge.net'
+    }
 }
 
 processResources {
-    //this will ensure that this task is redone when the versions change.
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
-    inputs.property "mod_id", mod_id
-    inputs.property "mod_name", mod_name
-    inputs.property "mod_description", mod_description
+    def replaceProperties = [
+            minecraft_version: minecraft_version,
+            forge_version    : forge_version,
+            mod_id           : mod_id,
+            mod_name         : mod_name,
+            mod_license      : mod_license,
+            mod_version      : mod_version,
+            mod_authors      : mod_authors,
+            mod_description  : mod_description,
+    ]
+    inputs.properties replaceProperties
 
-    //replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include "mcmod.info"
+    filesMatching(['mcmod.info', 'pack.mcmeta']) {
+        expand replaceProperties
+    }
+}
 
-        expand([
-            version         : project.version,
-            mcversion       : project.minecraft.version,
-            mod_id          : mod_id,
-            mod_name        : mod_name,
-            mod_description : mod_description,
+jar {
+    manifest {
+        attributes([
+                'Specification-Title'     : mod_id,
+                'Specification-Vendor'    : mod_authors,
+                'Specification-Version'   : '1',
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : project.version,
+                'Implementation-Vendor'   : mod_authors
         ])
     }
-
-    //copy everything else, that"s not the mcmod.info
-    from(sourceSets.main.resources.srcDirs) {
-        exclude "mcmod.info"
-    }
-
-    rename '(.+_at.cfg)', 'META-INF/$1'
 }
 
-shadowJar {
-    dependencies {
-        //we remove gson because it belongs to the public api and will break shading
-        //exclude(dependency("com.google.code.gson:gson:2.8.6"))
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
     }
-    configurations = [project.configurations.shade]
-    duplicatesStrategy DuplicatesStrategy.EXCLUDE //prevent duplicates
-    classifier "" //prevent creation of unshadowed jar
 }
 
-reobf {
-    //reobfuscate the shadowed jar
-    shadowJar {}
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }
