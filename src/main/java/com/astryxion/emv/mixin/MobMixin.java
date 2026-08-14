@@ -2,18 +2,18 @@ package com.astryxion.emv.mixin;
 
 import com.astryxion.emv.EmvVariantHolder;
 import com.astryxion.emv.EventHandler;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ILivingEntityData;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.IServerWorld;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,17 +23,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import javax.annotation.Nullable;
 
-@Mixin(MobEntity.class)
+@Mixin(Mob.class)
 public abstract class MobMixin extends LivingEntity implements EmvVariantHolder {
     @Unique
-    private static final DataParameter<Integer> EMV_VARIANT =
-        EntityDataManager.defineId(MobEntity.class, DataSerializers.INT);
+    private static final EntityDataAccessor<Integer> EMV_VARIANT =
+        SynchedEntityData.defineId(Mob.class, EntityDataSerializers.INT);
 
     @Unique
     private static final String EMV_VARIANT_KEY = "emv.variant";
 
-    protected MobMixin(EntityType<? extends LivingEntity> type, World world) {
-        super(type, world);
+    protected MobMixin(EntityType<? extends LivingEntity> type, Level level) {
+        super(type, level);
     }
 
     @Inject(method = "defineSynchedData", at = @At("TAIL"))
@@ -42,7 +42,7 @@ public abstract class MobMixin extends LivingEntity implements EmvVariantHolder 
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
-    private void emv$saveVariant(CompoundNBT tag, CallbackInfo ci) {
+    private void emv$saveVariant(CompoundTag tag, CallbackInfo ci) {
         int variant = this.entityData.get(EMV_VARIANT);
         if (variant >= 0) {
             tag.putInt(EMV_VARIANT_KEY, variant);
@@ -50,22 +50,22 @@ public abstract class MobMixin extends LivingEntity implements EmvVariantHolder 
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
-    private void emv$loadVariant(CompoundNBT tag, CallbackInfo ci) {
+    private void emv$loadVariant(CompoundTag tag, CallbackInfo ci) {
         if (tag.contains(EMV_VARIANT_KEY)) {
             this.entityData.set(EMV_VARIANT, tag.getInt(EMV_VARIANT_KEY));
         }
     }
 
     @ModifyVariable(method = "finalizeSpawn", at = @At("HEAD"), argsOnly = true)
-    private ILivingEntityData emv$sharePackVariant(
-        ILivingEntityData groupData,
-        IServerWorld world,
+    private SpawnGroupData emv$sharePackVariant(
+        SpawnGroupData groupData,
+        ServerLevelAccessor level,
         DifficultyInstance difficulty,
-        SpawnReason spawnReason,
-        ILivingEntityData spawnGroupData,
-        @Nullable CompoundNBT spawnTag
+        MobSpawnType spawnReason,
+        SpawnGroupData spawnGroupData,
+        @Nullable CompoundTag spawnTag
     ) {
-        return EventHandler.onFinalizeSpawn((MobEntity) (Object) this, spawnReason, groupData);
+        return EventHandler.onFinalizeSpawn((Mob) (Object) this, spawnReason, groupData);
     }
 
     @Override

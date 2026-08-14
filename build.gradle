@@ -1,25 +1,19 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
-    }
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
+    id 'org.spongepowered.mixin' version '0.7.38'
 }
-
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
-apply plugin: 'org.spongepowered.mixin'
 
 version = mod_version
 group = mod_group_id
-archivesBaseName = archives_base_name
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+base {
+    archivesName = archives_base_name
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 mixin {
     add sourceSets.main, "${mod_id}.refmap.json"
@@ -28,21 +22,25 @@ mixin {
 
 minecraft {
     mappings channel: mapping_channel, version: mapping_version
+    copyIdeResources = true
 
     runs {
-        client {
+        configureEach {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
             mods {
-                create(mod_id) {
+                "${mod_id}" {
                     source sourceSets.main
                 }
             }
         }
 
+        client {
+            property 'forge.enabledGameTestNamespaces', mod_id
+        }
+
+        // LAN testing: same Forge/Minecraft/mod as runClient, separate usernames and game dirs.
         clientPlayer1 {
             parent runs.client
             client true
@@ -58,29 +56,17 @@ minecraft {
         }
 
         server {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
+            property 'forge.enabledGameTestNamespaces', mod_id
             args '--nogui'
-            mods {
-                create(mod_id) {
-                    source sourceSets.main
-                }
-            }
+        }
+
+        gameTestServer {
+            property 'forge.enabledGameTestNamespaces', mod_id
         }
 
         data {
             workingDirectory project.file('run-data')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
             args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-            mods {
-                create(mod_id) {
-                    source sourceSets.main
-                }
-            }
         }
     }
 }
@@ -95,9 +81,8 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
-processResources {
-    duplicatesStrategy = DuplicatesStrategy.WARN
-    def replaceProperties = [
+tasks.named('processResources', ProcessResources).configure {
+    var replaceProperties = [
             minecraft_version      : minecraft_version,
             minecraft_version_range: minecraft_version_range,
             forge_version          : forge_version,
@@ -113,30 +98,30 @@ processResources {
     inputs.properties replaceProperties
 
     filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
-        expand replaceProperties
+        expand replaceProperties + [project: project]
     }
 }
 
-jar {
+tasks.named('jar', Jar).configure {
     manifest {
         attributes([
                 'Specification-Title'     : mod_id,
                 'Specification-Vendor'    : mod_authors,
                 'Specification-Version'   : '1',
                 'Implementation-Title'    : project.name,
-                'Implementation-Version'  : project.version,
+                'Implementation-Version'  : project.jar.archiveVersion,
                 'Implementation-Vendor'   : mod_authors,
                 'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
                 'MixinConfigs'            : "${mod_id}.mixins.json"
         ])
     }
-}
 
-jar.finalizedBy('reobfJar')
+    finalizedBy 'reobfJar'
+}
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        register('mavenJava', MavenPublication) {
             artifact jar
         }
     }
@@ -149,4 +134,5 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+    options.release = 17
 }

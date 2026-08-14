@@ -1,25 +1,25 @@
 package com.astryxion.emv;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ILivingEntityData;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.monster.CaveSpiderEntity;
-import net.minecraft.entity.monster.HuskEntity;
-import net.minecraft.entity.monster.SkeletonEntity;
-import net.minecraft.entity.monster.SpiderEntity;
-import net.minecraft.entity.monster.ZombieEntity;
-import net.minecraft.entity.passive.CatEntity;
-import net.minecraft.entity.passive.ChickenEntity;
-import net.minecraft.entity.passive.CowEntity;
-import net.minecraft.entity.passive.PigEntity;
-import net.minecraft.entity.passive.SheepEntity;
-import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.animal.Cat;
+import net.minecraft.world.entity.animal.Chicken;
+import net.minecraft.world.entity.animal.Cow;
+import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.Sheep;
+import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.monster.CaveSpider;
+import net.minecraft.world.entity.monster.Husk;
+import net.minecraft.world.entity.monster.Skeleton;
+import net.minecraft.world.entity.monster.Spider;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.IdentityHashMap;
@@ -28,9 +28,9 @@ import java.util.Map;
 
 public class EventHandler {
     private static final double CLUSTER_RADIUS = 16.0;
-    private static final Map<ILivingEntityData, Integer> PACK_VARIANTS = new IdentityHashMap<>();
+    private static final Map<SpawnGroupData, Integer> PACK_VARIANTS = new IdentityHashMap<>();
 
-    public static final class VariantGroupData implements ILivingEntityData {
+    public static final class VariantGroupData implements SpawnGroupData {
         public final int variant;
 
         public VariantGroupData(int variant) {
@@ -38,55 +38,45 @@ public class EventHandler {
         }
     }
 
-    private static final class Rule {
-        private final int bound;
-
-        private Rule(int bound) {
-            this.bound = bound;
-        }
-
-        int bound() {
-            return bound;
-        }
-    }
+    private record Rule(int bound) {}
 
     private static Rule ruleFor(Entity entity) {
-        if (entity instanceof ChickenEntity) {
+        if (entity instanceof Chicken) {
             return new Rule(8);
         }
-        if (entity instanceof CowEntity) {
+        if (entity instanceof Cow) {
             return new Rule(10);
         }
-        if (entity instanceof CatEntity) {
+        if (entity instanceof Cat) {
             return new Rule(6);
         }
-        if (entity instanceof PigEntity) {
+        if (entity instanceof Pig) {
             return new Rule(6);
         }
-        if (entity instanceof SheepEntity) {
+        if (entity instanceof Sheep) {
             return new Rule(7);
         }
-        if (entity instanceof WolfEntity) {
+        if (entity instanceof Wolf) {
             return new Rule(7);
         }
-        if (entity instanceof SkeletonEntity) {
+        if (entity instanceof Skeleton) {
             return new Rule(5);
         }
-        if (entity instanceof SpiderEntity && !(entity instanceof CaveSpiderEntity)) {
+        if (entity instanceof Spider spider && !(spider instanceof CaveSpider)) {
             return new Rule(5);
         }
-        if (entity instanceof ZombieEntity && !(entity instanceof HuskEntity)) {
+        if (entity instanceof Zombie zombie && !(zombie instanceof Husk)) {
             return new Rule(9);
         }
         return null;
     }
 
     @SubscribeEvent
-    public static void onEntityJoin(EntityJoinWorldEvent event) {
-        if (event.getWorld().isClientSide || !(event.getWorld() instanceof ServerWorld)) {
+    public static void onEntityJoin(EntityJoinLevelEvent event) {
+        if (event.getLevel().isClientSide() || !(event.getLevel() instanceof ServerLevel serverLevel)) {
             return;
         }
-        onEntityLoad(event.getEntity(), (ServerWorld) event.getWorld());
+        onEntityLoad(event.getEntity(), serverLevel);
     }
 
     @SubscribeEvent
@@ -96,7 +86,7 @@ public class EventHandler {
         }
     }
 
-    public static void onEntityLoad(Entity entity, ServerWorld world) {
+    public static void onEntityLoad(Entity entity, ServerLevel level) {
         Rule rule = ruleFor(entity);
         if (rule == null || Registration.has(entity)) {
             return;
@@ -105,8 +95,8 @@ public class EventHandler {
         Registration.set(entity, pickSpawnVariant(entity, rule));
     }
 
-    public static ILivingEntityData onFinalizeSpawn(MobEntity mob, SpawnReason reason, ILivingEntityData groupData) {
-        if (mob.level.isClientSide) {
+    public static SpawnGroupData onFinalizeSpawn(Mob mob, MobSpawnType reason, SpawnGroupData groupData) {
+        if (mob.level().isClientSide()) {
             return groupData;
         }
 
@@ -115,8 +105,8 @@ public class EventHandler {
             return groupData;
         }
 
-        if (groupData instanceof VariantGroupData) {
-            Registration.set(mob, ((VariantGroupData) groupData).variant);
+        if (groupData instanceof VariantGroupData pack) {
+            Registration.set(mob, pack.variant);
             return groupData;
         }
 
@@ -149,14 +139,18 @@ public class EventHandler {
                 return nearby;
             }
         }
-        return ((MobEntity) entity).getRandom().nextInt(rule.bound());
+        return ((Mob) entity).getRandom().nextInt(rule.bound());
     }
 
     private static Integer findNearbyVariant(Entity entity) {
-        World world = entity.level;
+        Level level = entity.level();
 
-        AxisAlignedBB box = entity.getBoundingBox().inflate(CLUSTER_RADIUS);
-        List<Entity> nearby = world.getEntities(entity, box, other -> other.getType() == entity.getType() && Registration.has(other));
+        AABB box = entity.getBoundingBox().inflate(CLUSTER_RADIUS);
+        List<Entity> nearby = level.getEntities(
+            entity,
+            box,
+            other -> other.getType() == entity.getType() && Registration.has(other)
+        );
         if (nearby.isEmpty()) {
             return null;
         }

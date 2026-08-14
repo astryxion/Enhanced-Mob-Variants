@@ -1,30 +1,24 @@
 package com.astryxion.emv;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 
 public final class Registration {
     private Registration() {}
 
     public static boolean has(Entity entity) {
-        if (entity instanceof EmvVariantHolder) {
-            return ((EmvVariantHolder) entity).emv$hasVariant();
-        }
-        return false;
+        return entity instanceof EmvVariantHolder holder && holder.emv$hasVariant();
     }
 
     public static int get(Entity entity) {
-        if (entity instanceof EmvVariantHolder) {
-            EmvVariantHolder holder = (EmvVariantHolder) entity;
-            if (holder.emv$hasVariant()) {
-                return holder.emv$getVariant();
-            }
+        if (entity instanceof EmvVariantHolder holder && holder.emv$hasVariant()) {
+            return holder.emv$getVariant();
         }
         return 0;
     }
 
     public static void set(Entity entity, int variant) {
-        if (entity instanceof EmvVariantHolder) {
-            ((EmvVariantHolder) entity).emv$setVariant(variant);
+        if (entity instanceof EmvVariantHolder holder) {
+            holder.emv$setVariant(variant);
         }
     }
 }

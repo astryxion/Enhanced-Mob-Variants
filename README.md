@@ -12,4 +12,4 @@ Adds unique visual variants to vanilla mobs to improve world diversity.
 
 This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
-Requires Minecraft 1.16.5 and Forge.
+Requires Minecraft 1.20.1 and Forge.

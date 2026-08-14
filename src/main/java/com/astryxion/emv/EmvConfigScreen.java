@@ -1,10 +1,12 @@
 package com.astryxion.emv;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.CycleButton;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.Locale;
@@ -17,7 +19,7 @@ public class EmvConfigScreen extends Screen {
     private final Screen parent;
 
     public EmvConfigScreen(Screen parent) {
-        super(new TranslationTextComponent("emv.configuration.title"));
+        super(Component.translatable("emv.configuration.title"));
         this.parent = parent;
     }
 
@@ -27,13 +29,15 @@ public class EmvConfigScreen extends Screen {
         int right = this.width / 2 + 5;
         int y = 36;
 
-        this.addButton(new Button(left, y, 310, BUTTON_HEIGHT, spawnModeLabel(Config.spawnMode()), button -> {
-            Config.SpawnMode next = Config.spawnMode() == Config.SpawnMode.RANDOM
-                ? Config.SpawnMode.UNIFORM
-                : Config.SpawnMode.RANDOM;
-            Config.SPAWN_MODE.set(next);
-            button.setMessage(spawnModeLabel(next));
-        }));
+        this.addRenderableWidget(
+            CycleButton.<Config.SpawnMode>builder(mode -> Component.translatable(
+                    "emv.configuration.spawn_mode." + mode.name().toLowerCase(Locale.ROOT)))
+                .withValues(Config.SpawnMode.RANDOM, Config.SpawnMode.UNIFORM)
+                .withInitialValue(Config.spawnMode())
+                .withTooltip(mode -> Tooltip.create(Component.translatable("emv.configuration.spawn_mode.tooltip")))
+                .create(left, y, 310, BUTTON_HEIGHT, Component.translatable("emv.configuration.spawn_mode"),
+                    (button, value) -> Config.SPAWN_MODE.set(value))
+        );
         y += ROW + 6;
 
         addToggle(left, y, "chicken", Config.CHICKEN);
@@ -50,35 +54,26 @@ public class EmvConfigScreen extends Screen {
         y += ROW;
         addToggle(left, y, "spider", Config.SPIDER);
 
-        this.addButton(new Button(this.width / 2 - 100, this.height - 27, 200, BUTTON_HEIGHT,
-            new TranslationTextComponent("gui.done"), button -> this.onClose()));
+        this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> this.onClose())
+            .bounds(this.width / 2 - 100, this.height - 27, 200, BUTTON_HEIGHT)
+            .build());
     }
 
     private void addToggle(int x, int y, String key, ForgeConfigSpec.BooleanValue value) {
-        this.addButton(new Button(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, toggleLabel(key, Config.enabled(value)), button -> {
-            boolean next = !value.get();
-            value.set(next);
-            button.setMessage(toggleLabel(key, next));
-        }));
-    }
-
-    private static ITextComponent spawnModeLabel(Config.SpawnMode mode) {
-        return new TranslationTextComponent("emv.configuration.spawn_mode")
-            .append(new StringTextComponent(": "))
-            .append(new TranslationTextComponent("emv.configuration.spawn_mode." + mode.name().toLowerCase(Locale.ROOT)));
-    }
-
-    private static ITextComponent toggleLabel(String key, boolean enabled) {
-        return new TranslationTextComponent("emv.configuration." + key)
-            .append(new StringTextComponent(": "))
-            .append(new TranslationTextComponent(enabled ? "options.on" : "options.off"));
+        this.addRenderableWidget(
+            CycleButton.booleanBuilder(CommonComponents.OPTION_ON, CommonComponents.OPTION_OFF)
+                .withInitialValue(Config.enabled(value))
+                .withTooltip(on -> Tooltip.create(Component.translatable("emv.configuration." + key + ".tooltip")))
+                .create(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.translatable("emv.configuration." + key),
+                    (button, enabled) -> value.set(enabled))
+        );
     }
 
     @Override
-    public void render(com.mojang.blaze3d.matrix.MatrixStack stack, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(stack);
-        drawCenteredString(stack, this.font, this.title, this.width / 2, 15, 0xFFFFFF);
-        super.render(stack, mouseX, mouseY, partialTick);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        this.renderBackground(graphics);
+        graphics.drawCenteredString(this.font, this.title, this.width / 2, 15, 0xFFFFFF);
+        super.render(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
