@@ -1,21 +1,23 @@
 package com.astryxion.emv;
 
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import org.slf4j.Logger;
-import com.mojang.logging.LogUtils;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
+import org.slf4j.LoggerFactory;
 
-@Mod(EnhancedMobVariants.MODID)
-public class EnhancedMobVariants {
+public class EnhancedMobVariants implements ModInitializer {
     public static final String MODID = "emv";
-    public static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 
-    public EnhancedMobVariants() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_SPEC);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.COMMON_SPEC);
-        MinecraftForge.EVENT_BUS.register(EventHandler.class);
+    @Override
+    public void onInitialize() {
+        Config.loadCommon();
+        Registration.init();
+        ServerEntityEvents.ENTITY_LOAD.register(EventHandler::onEntityLoad);
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> Config.reloadCommonIfChanged());
+        ServerTickEvents.END_SERVER_TICK.register(server -> EventHandler.endServerTick());
         LOGGER.info("Enhanced Mob Variants initialized with Mod ID: {}", MODID);
     }
 }

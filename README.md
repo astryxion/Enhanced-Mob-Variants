@@ -12,4 +12,6 @@ Adds unique visual variants to vanilla mobs to improve world diversity.
 
 This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
-Requires Minecraft 1.20.1 and Forge.
+See the [LICENSE](LICENSE) file for the full license text.
+
+Requires Minecraft 1.20.1, Fabric Loader, and Fabric API.

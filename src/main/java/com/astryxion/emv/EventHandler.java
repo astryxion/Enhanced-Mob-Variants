@@ -18,9 +18,6 @@ import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -71,21 +68,6 @@ public class EventHandler {
         return null;
     }
 
-    @SubscribeEvent
-    public static void onEntityJoin(EntityJoinLevelEvent event) {
-        if (event.getLevel().isClientSide() || !(event.getLevel() instanceof ServerLevel serverLevel)) {
-            return;
-        }
-        onEntityLoad(event.getEntity(), serverLevel);
-    }
-
-    @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
-            endServerTick();
-        }
-    }
-
     public static void onEntityLoad(Entity entity, ServerLevel level) {
         Rule rule = ruleFor(entity);
         if (rule == null || Registration.has(entity)) {
@@ -130,6 +112,7 @@ public class EventHandler {
 
     public static void endServerTick() {
         PACK_VARIANTS.clear();
+        Config.reloadCommonIfChanged();
     }
 
     private static int pickSpawnVariant(Entity entity, Rule rule) {

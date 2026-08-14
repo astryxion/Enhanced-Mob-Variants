@@ -2,6 +2,9 @@ package com.astryxion.emv;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.SheepFurModel;
 import net.minecraft.client.model.SheepModel;
@@ -36,36 +39,22 @@ import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.monster.Spider;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.item.DyeColor;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.ConfigScreenHandler;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
-@Mod.EventBusSubscriber(modid = EnhancedMobVariants.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-public class ClientHandler {
+public class ClientHandler implements ClientModInitializer {
 
-    @SubscribeEvent
-    public static void onClientSetup(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> ModLoadingContext.get().registerExtensionPoint(
-            ConfigScreenHandler.ConfigScreenFactory.class,
-            () -> new ConfigScreenHandler.ConfigScreenFactory((mc, parent) -> new EmvConfigScreen(parent))
-        ));
-    }
-
-    @SubscribeEvent
-    public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(EntityType.CHICKEN, VariantChickenRenderer::new);
-        event.registerEntityRenderer(EntityType.COW, VariantCowRenderer::new);
-        event.registerEntityRenderer(EntityType.CAT, VariantCatRenderer::new);
-        event.registerEntityRenderer(EntityType.PIG, VariantPigRenderer::new);
-        event.registerEntityRenderer(EntityType.SKELETON, VariantSkeletonRenderer::new);
-        event.registerEntityRenderer(EntityType.SPIDER, VariantSpiderRenderer::new);
-        event.registerEntityRenderer(EntityType.ZOMBIE, VariantZombieRenderer::new);
-        event.registerEntityRenderer(EntityType.SHEEP, VariantSheepRenderer::new);
-        event.registerEntityRenderer(EntityType.WOLF, VariantWolfRenderer::new);
+    @Override
+    public void onInitializeClient() {
+        Config.loadClient();
+        ClientTickEvents.END_CLIENT_TICK.register(client -> Config.reloadClientIfChanged());
+        EntityRendererRegistry.register(EntityType.CHICKEN, VariantChickenRenderer::new);
+        EntityRendererRegistry.register(EntityType.COW, VariantCowRenderer::new);
+        EntityRendererRegistry.register(EntityType.CAT, VariantCatRenderer::new);
+        EntityRendererRegistry.register(EntityType.PIG, VariantPigRenderer::new);
+        EntityRendererRegistry.register(EntityType.SKELETON, VariantSkeletonRenderer::new);
+        EntityRendererRegistry.register(EntityType.SPIDER, VariantSpiderRenderer::new);
+        EntityRendererRegistry.register(EntityType.ZOMBIE, VariantZombieRenderer::new);
+        EntityRendererRegistry.register(EntityType.SHEEP, VariantSheepRenderer::new);
+        EntityRendererRegistry.register(EntityType.WOLF, VariantWolfRenderer::new);
     }
 
     private static ResourceLocation emvTex(String path) {

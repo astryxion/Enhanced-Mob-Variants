@@ -1,138 +1,97 @@
 plugins {
-    id 'eclipse'
-    id 'idea'
+    id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
     id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
-    id 'org.spongepowered.mixin' version '0.7.38'
 }
 
-version = mod_version
-group = mod_group_id
+version = project.mod_version
+group = project.maven_group
 
 base {
-    archivesName = archives_base_name
+    archivesName = project.archives_base_name
 }
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-
-mixin {
-    add sourceSets.main, "${mod_id}.refmap.json"
-    config "${mod_id}.mixins.json"
-}
-
-minecraft {
-    mappings channel: mapping_channel, version: mapping_version
-    copyIdeResources = true
-
-    runs {
-        configureEach {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        client {
-            property 'forge.enabledGameTestNamespaces', mod_id
-        }
-
-        // LAN testing: same Forge/Minecraft/mod as runClient, separate usernames and game dirs.
-        clientPlayer1 {
-            parent runs.client
-            client true
-            workingDirectory project.file('run-player1')
-            args '--username', 'Player1'
-        }
-
-        clientPlayer2 {
-            parent runs.client
-            client true
-            workingDirectory project.file('run-player2')
-            args '--username', 'Player2'
-        }
-
-        server {
-            property 'forge.enabledGameTestNamespaces', mod_id
-            args '--nogui'
-        }
-
-        gameTestServer {
-            property 'forge.enabledGameTestNamespaces', mod_id
-        }
-
-        data {
-            workingDirectory project.file('run-data')
-            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-        }
-    }
-}
-
-sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
 }
 
+loom {
+    splitEnvironmentSourceSets()
+
+    mods {
+        "${project.mod_id}" {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+        }
+    }
+
+    // Local LAN testing: two offline-dev clients with distinct usernames and game dirs.
+    // The default client / runClient task is left unchanged.
+    runs {
+        clientPlayer1 {
+            client()
+            configName = "Minecraft Client Player1"
+            runDir = "run-player1"
+            programArgs "--username", "Player1"
+            ideConfigGenerated = true
+        }
+
+        clientPlayer2 {
+            client()
+            configName = "Minecraft Client Player2"
+            runDir = "run-player2"
+            programArgs "--username", "Player2"
+            ideConfigGenerated = true
+        }
+    }
+}
+
 dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 }
 
-tasks.named('processResources', ProcessResources).configure {
-    var replaceProperties = [
-            minecraft_version      : minecraft_version,
-            minecraft_version_range: minecraft_version_range,
-            forge_version          : forge_version,
-            forge_version_range    : forge_version_range,
-            loader_version_range   : loader_version_range,
-            mod_id                 : mod_id,
-            mod_name               : mod_name,
-            mod_license            : mod_license,
-            mod_version            : mod_version,
-            mod_authors            : mod_authors,
-            mod_description        : mod_description,
+processResources {
+    def expandProps = [
+            version   : project.version,
+            loader_version: project.loader_version,
+            mod_id    : project.mod_id,
+            mod_name  : project.mod_name,
+            mod_license: project.mod_license
     ]
-    inputs.properties replaceProperties
+    inputs.properties expandProps
 
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
-        expand replaceProperties + [project: project]
-    }
-}
-
-tasks.named('jar', Jar).configure {
-    manifest {
-        attributes([
-                'Specification-Title'     : mod_id,
-                'Specification-Vendor'    : mod_authors,
-                'Specification-Version'   : '1',
-                'Implementation-Title'    : project.name,
-                'Implementation-Version'  : project.jar.archiveVersion,
-                'Implementation-Vendor'   : mod_authors,
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                'MixinConfigs'            : "${mod_id}.mixins.json"
-        ])
-    }
-
-    finalizedBy 'reobfJar'
-}
-
-publishing {
-    publications {
-        register('mavenJava', MavenPublication) {
-            artifact jar
-        }
-    }
-    repositories {
-        maven {
-            url "file://${project.projectDir}/mcmodsrepo"
-        }
+    filesMatching("fabric.mod.json") {
+        expand expandProps
     }
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-    options.release = 17
+    it.options.release = 17
+    it.options.encoding = 'UTF-8'
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+jar {
+    def projectName = project.name
+    inputs.property "projectName", projectName
+
+    from("LICENSE") {
+        rename { "${it}_${projectName}" }
+    }
+}
+
+publishing {
+    publications {
+        create("mavenJava", MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+    }
 }
