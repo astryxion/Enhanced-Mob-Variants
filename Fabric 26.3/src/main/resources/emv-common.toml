@@ -1,0 +1,7 @@
+# Enhanced Mob Variants - spawning
+# This file is used by the server / singleplayer world.
+
+# RANDOM: each mob can roll any texture. A spawn cluster can mix variants, and breeding can produce any texture.
+# UNIFORM: mobs that spawn in the same group share one texture, and babies inherit that same texture.
+# Saving this file applies to new spawns. Existing mobs keep the texture they already have.
+spawn_mode = "RANDOM"
