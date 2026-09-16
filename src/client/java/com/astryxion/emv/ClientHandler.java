@@ -42,25 +42,36 @@ import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.entity.monster.skeleton.Skeleton;
 import net.minecraft.world.entity.monster.spider.Spider;
 import net.minecraft.world.entity.monster.zombie.Zombie;
-import net.minecraft.client.renderer.entity.EntityRenderers;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
-public class ClientHandler implements ClientModInitializer {
+@EventBusSubscriber(modid = EnhancedMobVariants.MODID, value = Dist.CLIENT)
+public class ClientHandler {
 
-    @Override
-    public void onInitializeClient() {
-        Config.loadClient();
-        ClientTickEvents.END_CLIENT_TICK.register(client -> Config.reloadClientIfChanged());
-        EntityRenderers.register(EntityTypes.CHICKEN, VariantChickenRenderer::new);
-        EntityRenderers.register(EntityTypes.COW, VariantCowRenderer::new);
-        EntityRenderers.register(EntityTypes.CAT, VariantCatRenderer::new);
-        EntityRenderers.register(EntityTypes.PIG, VariantPigRenderer::new);
-        EntityRenderers.register(EntityTypes.SKELETON, VariantSkeletonRenderer::new);
-        EntityRenderers.register(EntityTypes.SPIDER, VariantSpiderRenderer::new);
-        EntityRenderers.register(EntityTypes.ZOMBIE, VariantZombieRenderer::new);
-        EntityRenderers.register(EntityTypes.SHEEP, VariantSheepRenderer::new);
-        EntityRenderers.register(EntityTypes.WOLF, VariantWolfRenderer::new);
+    @SubscribeEvent
+    public static void onClientSetup(FMLClientSetupEvent event) {
+        event.enqueueWork(() -> ModList.get()
+            .getModContainerById(EnhancedMobVariants.MODID)
+            .ifPresent(c -> c.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new)));
+    }
+
+    @SubscribeEvent
+    public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(EntityTypes.CHICKEN, VariantChickenRenderer::new);
+        event.registerEntityRenderer(EntityTypes.COW, VariantCowRenderer::new);
+        event.registerEntityRenderer(EntityTypes.CAT, VariantCatRenderer::new);
+        event.registerEntityRenderer(EntityTypes.PIG, VariantPigRenderer::new);
+        event.registerEntityRenderer(EntityTypes.SKELETON, VariantSkeletonRenderer::new);
+        event.registerEntityRenderer(EntityTypes.SPIDER, VariantSpiderRenderer::new);
+        event.registerEntityRenderer(EntityTypes.ZOMBIE, VariantZombieRenderer::new);
+        event.registerEntityRenderer(EntityTypes.SHEEP, VariantSheepRenderer::new);
+        event.registerEntityRenderer(EntityTypes.WOLF, VariantWolfRenderer::new);
     }
 
     private static String variantPath(String mob, String name, boolean baby) {
@@ -233,7 +244,7 @@ public class ClientHandler implements ClientModInitializer {
         public void extractRenderState(Chicken entity, ChickenRenderState state, float partialTick) {
             super.extractRenderState(entity, state, partialTick);
             if (state instanceof MmvChickenRenderState m) {
-                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.CHICKEN_VARIANT, 0);
+                m.moreMobVariantsVariant = entity.getData(Registration.CHICKEN_VARIANT);
             }
         }
 
@@ -264,7 +275,7 @@ public class ClientHandler implements ClientModInitializer {
         public void extractRenderState(Cow entity, CowRenderState state, float partialTick) {
             super.extractRenderState(entity, state, partialTick);
             if (state instanceof MmvCowRenderState m) {
-                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.COW_VARIANT, 0);
+                m.moreMobVariantsVariant = entity.getData(Registration.COW_VARIANT);
             }
         }
 
@@ -295,7 +306,7 @@ public class ClientHandler implements ClientModInitializer {
         public void extractRenderState(Cat entity, CatRenderState state, float partialTick) {
             super.extractRenderState(entity, state, partialTick);
             if (state instanceof MmvCatRenderState m) {
-                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.CAT_VARIANT, 0);
+                m.moreMobVariantsVariant = entity.getData(Registration.CAT_VARIANT);
             }
         }
 
@@ -326,7 +337,7 @@ public class ClientHandler implements ClientModInitializer {
         public void extractRenderState(Pig entity, PigRenderState state, float partialTick) {
             super.extractRenderState(entity, state, partialTick);
             if (state instanceof MmvPigRenderState m) {
-                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.PIG_VARIANT, 0);
+                m.moreMobVariantsVariant = entity.getData(Registration.PIG_VARIANT);
             }
         }
 
@@ -357,7 +368,7 @@ public class ClientHandler implements ClientModInitializer {
         public void extractRenderState(Skeleton entity, SkeletonRenderState state, float partialTick) {
             super.extractRenderState(entity, state, partialTick);
             if (state instanceof MmvSkeletonRenderState m) {
-                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.SKELETON_VARIANT, 0);
+                m.moreMobVariantsVariant = entity.getData(Registration.SKELETON_VARIANT);
             }
         }
 
@@ -390,7 +401,7 @@ public class ClientHandler implements ClientModInitializer {
         public void extractRenderState(Spider entity, LivingEntityRenderState state, float partialTick) {
             super.extractRenderState(entity, state, partialTick);
             if (state instanceof MmvSpiderRenderState m) {
-                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.SPIDER_VARIANT, 0);
+                m.moreMobVariantsVariant = entity.getData(Registration.SPIDER_VARIANT);
             }
         }
 
@@ -423,7 +434,7 @@ public class ClientHandler implements ClientModInitializer {
         public void extractRenderState(Zombie entity, ZombieRenderState state, float partialTick) {
             super.extractRenderState(entity, state, partialTick);
             if (state instanceof MmvZombieRenderState m) {
-                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.ZOMBIE_VARIANT, 0);
+                m.moreMobVariantsVariant = entity.getData(Registration.ZOMBIE_VARIANT);
             }
         }
 
@@ -454,7 +465,7 @@ public class ClientHandler implements ClientModInitializer {
         public void extractRenderState(Wolf entity, WolfRenderState state, float partialTick) {
             super.extractRenderState(entity, state, partialTick);
             if (state instanceof MmvWolfRenderState m) {
-                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.WOLF_VARIANT, 0);
+                m.moreMobVariantsVariant = entity.getData(Registration.WOLF_VARIANT);
             }
         }
 
@@ -491,7 +502,7 @@ public class ClientHandler implements ClientModInitializer {
         public void extractRenderState(Sheep entity, SheepRenderState state, float partialTick) {
             super.extractRenderState(entity, state, partialTick);
             if (state instanceof MmvSheepRenderState m) {
-                m.moreMobVariantsVariant = entity.getAttachedOrElse(Registration.SHEEP_VARIANT, 0);
+                m.moreMobVariantsVariant = entity.getData(Registration.SHEEP_VARIANT);
             }
         }
 

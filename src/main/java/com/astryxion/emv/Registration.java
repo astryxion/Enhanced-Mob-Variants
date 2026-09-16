@@ -1,40 +1,34 @@
 package com.astryxion.emv;
 
 import com.mojang.serialization.Codec;
-import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
-import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
-import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.Entity;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
-public final class Registration {
-    public static final AttachmentType<Integer> CHICKEN_VARIANT = variant("chicken_variant");
-    public static final AttachmentType<Integer> COW_VARIANT = variant("cow_variant");
-    public static final AttachmentType<Integer> CAT_VARIANT = variant("cat_variant");
-    public static final AttachmentType<Integer> PIG_VARIANT = variant("pig_variant");
-    public static final AttachmentType<Integer> SKELETON_VARIANT = variant("skeleton_variant");
-    public static final AttachmentType<Integer> SPIDER_VARIANT = variant("spider_variant");
-    public static final AttachmentType<Integer> ZOMBIE_VARIANT = variant("zombie_variant");
-    public static final AttachmentType<Integer> SHEEP_VARIANT = variant("sheep_variant");
-    public static final AttachmentType<Integer> WOLF_VARIANT = variant("wolf_variant");
+import java.util.function.Supplier;
 
-    private Registration() {}
+public class Registration {
+    private static final MapCodec<Integer> INT_ATTACHMENT_CODEC = Codec.INT.fieldOf("value");
 
-    public static void init() {
-        // Attachment types register themselves when this class is loaded.
-    }
+    public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
+        DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, EnhancedMobVariants.MODID);
 
-    public static int get(Entity entity, AttachmentType<Integer> type) {
-        return entity.getAttachedOrElse(type, 0);
-    }
+    public static final Supplier<AttachmentType<Integer>> CHICKEN_VARIANT = variant("chicken_variant");
+    public static final Supplier<AttachmentType<Integer>> COW_VARIANT = variant("cow_variant");
+    public static final Supplier<AttachmentType<Integer>> CAT_VARIANT = variant("cat_variant");
+    public static final Supplier<AttachmentType<Integer>> PIG_VARIANT = variant("pig_variant");
+    public static final Supplier<AttachmentType<Integer>> SKELETON_VARIANT = variant("skeleton_variant");
+    public static final Supplier<AttachmentType<Integer>> SPIDER_VARIANT = variant("spider_variant");
+    public static final Supplier<AttachmentType<Integer>> ZOMBIE_VARIANT = variant("zombie_variant");
+    public static final Supplier<AttachmentType<Integer>> SHEEP_VARIANT = variant("sheep_variant");
+    public static final Supplier<AttachmentType<Integer>> WOLF_VARIANT = variant("wolf_variant");
 
-    private static AttachmentType<Integer> variant(String name) {
-        return AttachmentRegistry.create(
-            Identifier.fromNamespaceAndPath(EnhancedMobVariants.MODID, name),
-            builder -> builder
-                .persistent(Codec.INT)
-                .syncWith(ByteBufCodecs.VAR_INT, AttachmentSyncPredicate.all())
-        );
+    private static Supplier<AttachmentType<Integer>> variant(String name) {
+        return ATTACHMENT_TYPES.register(name, () -> AttachmentType.builder(() -> 0)
+            .serialize(INT_ATTACHMENT_CODEC)
+            .sync(ByteBufCodecs.VAR_INT)
+            .build());
     }
 }
